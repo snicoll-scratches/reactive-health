@@ -31,11 +31,11 @@ public class ReactiveCompositeHealthIndicatorTests {
 
 	@Test
 	public void singleIndicator() {
-		this.indicator.addHealthIndicator("test", () -> Mono.just(Health.up().build()));
+		this.indicator.addHealthIndicator("test", () -> Mono.just(HEALTHY));
 		StepVerifier.create(this.indicator.health()).consumeNextWith(h -> {
 			assertThat(h.getStatus()).isEqualTo(Status.UP);
 			assertThat(h.getDetails()).containsOnlyKeys("test");
-			assertThat(h.getDetails().get("test")).isEqualTo(Health.up().build());
+			assertThat(h.getDetails().get("test")).isEqualTo(HEALTHY);
 		}).verifyComplete();
 	}
 
