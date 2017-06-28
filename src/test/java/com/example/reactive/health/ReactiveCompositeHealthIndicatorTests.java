@@ -1,9 +1,6 @@
 package com.example.reactive.health;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Test;
 import reactor.core.publisher.Mono;
@@ -24,13 +21,13 @@ public class ReactiveCompositeHealthIndicatorTests {
 
 	private OrderedHealthAggregator healthAggregator = new OrderedHealthAggregator();
 
+	private ReactiveCompositeHealthIndicator indicator =
+			new ReactiveCompositeHealthIndicator(this.healthAggregator);
+
 	@Test
 	public void singleIndicator() {
-		ReactiveHealthIndicator indicator = new ReactiveCompositeHealthIndicator(
-				this.healthAggregator,
-				Collections.singletonMap("test", () -> Mono.just(Health.up().build())));
-
-		StepVerifier.create(indicator.health()).consumeNextWith(h -> {
+		this.indicator.addHealthIndicator("test", () -> Mono.just(Health.up().build()));
+		StepVerifier.create(this.indicator.health()).consumeNextWith(h -> {
 			assertThat(h.getStatus()).isEqualTo(Status.UP);
 			assertThat(h.getDetails()).containsOnlyKeys("test");
 			assertThat(h.getDetails().get("test")).isEqualTo(Health.up().build());
@@ -39,13 +36,11 @@ public class ReactiveCompositeHealthIndicatorTests {
 
 	@Test
 	public void longHealth() {
-		Map<String, ReactiveHealthIndicator> indicators = new HashMap<>();
 		for (int i = 0; i < 50; i++) {
-			indicators.put("test" + i, new TimeoutHealth(10000, Status.UP));
+			this.indicator.addHealthIndicator(
+					"test" + i, new TimeoutHealth(10000, Status.UP));
 		}
-		ReactiveHealthIndicator indicator = new ReactiveCompositeHealthIndicator(
-				this.healthAggregator, indicators);
-		StepVerifier.withVirtualTime(indicator::health)
+		StepVerifier.withVirtualTime(this.indicator::health)
 				.expectSubscription()
 				.thenAwait(Duration.ofMillis(10000))
 				.consumeNextWith(h -> {

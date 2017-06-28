@@ -33,8 +33,10 @@ public class ReactiveCompositeHealthIndicator implements ReactiveHealthIndicator
 		this.healthAggregator = healthAggregator;
 	}
 
-	public void addHealthIndicator(String name, ReactiveHealthIndicator indicator) {
+	public ReactiveCompositeHealthIndicator addHealthIndicator(String name,
+			ReactiveHealthIndicator indicator) {
 		this.indicators.put(name, indicator);
+		return this;
 	}
 
 	@Override
